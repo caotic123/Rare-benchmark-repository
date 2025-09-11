@@ -1,0 +1,34 @@
+Elaborating (= (<= 1 f3) (>= f3 1))
+Elaboration successed
+Elaborating (= (< 2 (+ (* 4 f3) 1)) (not (>= 2 (+ (* 4 f3) 1))))
+Elaboration successed
+Elaborating (= (+ (* 4 f3) 1) (+ 1 (* 4 f3)))
+At 8:5 of carcara/src/rare/meta.rs
+Check failed: 
+(= (goal_lhs ) (goal_rhs ))
+Elaborating (= (>= 2 (+ 1 (* 4 f3))) (not (>= f3 1)))
+At 8:5 of carcara/src/rare/meta.rs
+Check failed: 
+(= (goal_lhs ) (goal_rhs ))
+Elaborating (= (not (not (>= f3 1))) (>= f3 1))
+Elaboration successed
+holey
+(step t0 (cl (not (= (<= 1 f3) (>= f3 1))) (not (<= 1 f3)) (>= f3 1)) :rule equiv_pos2)
+(step t1.t1 (cl (= (<= 1 f3) (>= f3 1))) :rule hole :args ("TRUST_THEORY_REWRITE" (= (<= 1 f3) (>= f3 1)) 3 7))
+(assume a2 (<= 1 f3))
+(step t2 (cl (>= f3 1)) :rule resolution :premises (t0 t1.t1 a2) :args ((= (<= 1 f3) (>= f3 1)) false (<= 1 f3) false))
+(step t3 (cl (not (= (not (< 2 (+ (* 4 f3) 1))) (not (>= f3 1)))) (not (not (< 2 (+ (* 4 f3) 1)))) (not (>= f3 1))) :rule equiv_pos2)
+(step t4.t1 (cl (= (< 2 (+ (* 4 f3) 1)) (not (>= 2 (+ (* 4 f3) 1))))) :rule hole :args ("TRUST_THEORY_REWRITE" (= (< 2 (+ (* 4 f3) 1)) (not (>= 2 (+ (* 4 f3) 1)))) 3 6))
+(step t5 (cl (= 2 2)) :rule refl)
+(step t6.t1 (cl (= (+ (* 4 f3) 1) (+ 1 (* 4 f3)))) :rule hole :args ("TRUST_THEORY_REWRITE" (= (+ (* 4 f3) 1) (+ 1 (* 4 f3))) 3 7))
+(step t7 (cl (= (>= 2 (+ (* 4 f3) 1)) (>= 2 (+ 1 (* 4 f3))))) :rule cong :premises (t5 t6.t1))
+(step t8.t1 (cl (= (>= 2 (+ 1 (* 4 f3))) (not (>= f3 1)))) :rule hole :args ("TRUST_THEORY_REWRITE" (= (>= 2 (+ 1 (* 4 f3))) (not (>= f3 1))) 3 7))
+(step t9 (cl (= (>= 2 (+ (* 4 f3) 1)) (not (>= f3 1)))) :rule trans :premises (t7 t8.t1))
+(step t10 (cl (= (not (>= 2 (+ (* 4 f3) 1))) (not (not (>= f3 1))))) :rule cong :premises (t9))
+(step t11.t1 (cl (= (not (not (>= f3 1))) (>= f3 1))) :rule hole :args ("TRUST_THEORY_REWRITE" (= (not (not (>= f3 1))) (>= f3 1)) 1 7))
+(step t12 (cl (= (not (>= 2 (+ (* 4 f3) 1))) (>= f3 1))) :rule trans :premises (t10 t11.t1))
+(step t13 (cl (= (< 2 (+ (* 4 f3) 1)) (>= f3 1))) :rule trans :premises (t4.t1 t12))
+(step t14 (cl (= (not (< 2 (+ (* 4 f3) 1))) (not (>= f3 1)))) :rule cong :premises (t13))
+(assume a1 (not (< 2 (+ (* 4 f3) 1))))
+(step t15 (cl (not (>= f3 1))) :rule resolution :premises (t3 t14 a1) :args ((= (not (< 2 (+ (* 4 f3) 1))) (not (>= f3 1))) false (not (< 2 (+ (* 4 f3) 1))) false))
+(step t16 (cl) :rule resolution :premises (t2 t15) :args ((>= f3 1) true))Elaborating (= (not (not y$2320)) y$2320)
