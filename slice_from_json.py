@@ -146,6 +146,7 @@ def main():
             
             if '.' in command:
                 continue
+            
 
             rel_from_search = os.path.relpath(src_alethe, search_root)
             rel_dir = os.path.dirname(rel_from_search)
@@ -160,6 +161,20 @@ def main():
 
             out_file = os.path.join(out_dir, f"{base_name}__from-{command}.smt2.alethe")
             err_file = out_file + ".stderr"
+            
+             # === Skip if the output already exists ===
+            if os.path.exists(out_file):
+                # Optional: keep a log line so your pipeline still sees progress
+                print(json.dumps({
+                    "folder": top_folder_name,
+                    "file": file_field,
+                    "command": command,
+                    "line": line_no,
+                    "out": os.path.relpath(out_file, out_root_parent),
+                    "status": "ok",
+                    "cached": True
+                }, ensure_ascii=False))
+                continue
 
             if args.debug:
                 print(json.dumps({
