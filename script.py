@@ -207,7 +207,7 @@ def main():
     ap.add_argument("--out-root", default=None, help="Base dir to write 'sliced_proofs'. Default: alongside ROOT (parent of ROOT).")
     ap.add_argument("--rare-file", default="big.rare", help="Path to .rare file (default: big.rare)")
     ap.add_argument("--results", default="results.json", help="JSON array file to append per-slice elaboration results (default: results.json)")
-    ap.add_argument("--elab-timeout-sec", type=int, default=60, help="Timeout in seconds for each elaboration (0 disables). Default: 60")
+    ap.add_argument("--elab-timeout-sec", type=int, default=200, help="Timeout in seconds for each elaboration (0 disables). Default: 60")
     ap.add_argument("--debug", action="store_true", help="Verbose debug output")
     ap.add_argument("--no-move", action="store_true", help="Do not move the original .smt2 (copy instead).")
     # Defaults reflect your benchmark flags
