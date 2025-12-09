@@ -107,6 +107,53 @@ def find_existing_smt2_for_base(out_dir: str, base_name: str) -> Optional[str]:
     cand = os.path.join(out_dir, f"{base_name}.smt2")
     return cand if os.path.isfile(cand) else None
 
+def search_smt2_in_tree(root: str, base_name: str) -> Optional[str]:
+    """Search for base_name.smt2 anywhere under root directory."""
+    target = f"{base_name}.smt2"
+    for dirpath, _, filenames in os.walk(root):
+        if target in filenames:
+            return os.path.join(dirpath, target)
+    return None
+
+def restore_smt2_from_git(smt2_path: str, repo_root: str, debug: bool = False) -> bool:
+    """Try to restore a deleted .smt2 file from git history."""
+    try:
+        # Get relative path from repo root
+        rel_path = os.path.relpath(smt2_path, repo_root)
+
+        # Find the last commit that had this file
+        result = subprocess.run(
+            ["git", "rev-list", "-n", "1", "HEAD", "--", rel_path],
+            capture_output=True, text=True, cwd=repo_root
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            # Try with full history
+            result = subprocess.run(
+                ["git", "log", "--all", "--format=%H", "-n", "1", "--", rel_path],
+                capture_output=True, text=True, cwd=repo_root
+            )
+            if result.returncode != 0 or not result.stdout.strip():
+                return False
+
+        commit = result.stdout.strip()
+
+        # Get the file content from that commit
+        result = subprocess.run(
+            ["git", "show", f"{commit}:{rel_path}"],
+            capture_output=True, text=True, cwd=repo_root
+        )
+        if result.returncode == 0 and result.stdout:
+            os.makedirs(os.path.dirname(smt2_path), exist_ok=True)
+            with open(smt2_path, "w", encoding="utf-8") as f:
+                f.write(result.stdout)
+            if debug:
+                print(json.dumps({"debug": "smt2_restored_from_git", "path": smt2_path, "commit": commit[:8]}))
+            return True
+    except Exception as e:
+        if debug:
+            print(json.dumps({"debug": "git_restore_error", "path": smt2_path, "error": str(e)}))
+    return False
+
 def run_slice(from_hole: str, alethe_path: str, smt2_path: str, out_slice_path: str,
               parse_hole_args: bool, no_print_with_sharing: bool, debug: bool) -> Tuple[bool, Optional[str]]:
     ensure_dir(os.path.dirname(out_slice_path))
@@ -209,6 +256,8 @@ def main():
     ap.add_argument("--results", default="results.json", help="JSON array file to append per-slice elaboration results (default: results.json)")
     ap.add_argument("--elab-timeout-sec", type=int, default=200, help="Timeout in seconds for each elaboration (0 disables). Default: 60")
     ap.add_argument("--debug", action="store_true", help="Verbose debug output")
+    ap.add_argument("--no-cache", action="store_true", help="Ignore cached slices and elaboration outputs, re-run everything from scratch")
+    ap.add_argument("--pre-slice", action="store_true", help="Run slice_to_json.py + slice_from_json.py first to pre-generate all slices before elaboration")
     ap.add_argument("--no-move", action="store_true", help="Do not move the original .smt2 (copy instead).")
     # Defaults reflect your benchmark flags
     ap.add_argument("--allow-int-real-subtyping", action="store_true", default=True)
@@ -230,12 +279,68 @@ def main():
     if args.debug:
         print(json.dumps({"debug": "paths", "root": root_abs, "sliced_root": sliced_root}))
 
-    for dirpath, _dirnames, filenames in os.walk(root_abs):
+    # Pre-slice step: run slice_to_json.py + slice_from_json.py if requested and commands.json doesn't exist
+    if args.pre_slice:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        slice_to_json = os.path.join(script_dir, "slice_to_json.py")
+        slice_from_json = os.path.join(script_dir, "slice_from_json.py")
+        commands_json = os.path.join(out_root_parent, f"{root_name}.commands.json")
+
+        # Only run if commands.json doesn't exist (skip if cached)
+        if os.path.isfile(commands_json) and not args.no_cache:
+            print(json.dumps({"status": "pre_slice", "step": "skipped", "reason": "commands.json already exists", "path": commands_json}))
+        else:
+            if not os.path.isfile(slice_to_json) or not os.path.isfile(slice_from_json):
+                print(json.dumps({"status": "error", "reason": "slice_to_json.py or slice_from_json.py not found", "script_dir": script_dir}))
+                sys.exit(1)
+
+            # Generate commands JSON
+            print(json.dumps({"status": "pre_slice", "step": "slice_to_json", "root": root_abs, "output": commands_json}))
+            try:
+                subprocess.run([sys.executable, slice_to_json, root_abs, commands_json], check=True)
+            except subprocess.CalledProcessError as e:
+                print(json.dumps({"status": "error", "reason": "slice_to_json.py failed", "returncode": e.returncode}))
+                sys.exit(1)
+
+            if not os.path.isfile(commands_json):
+                print(json.dumps({"status": "warning", "reason": "no commands.json generated, no holes found"}))
+            else:
+                # Run slice_from_json to generate slices
+                print(json.dumps({"status": "pre_slice", "step": "slice_from_json", "input": commands_json}))
+                try:
+                    slice_from_args = [sys.executable, slice_from_json, commands_json, "--out-root", out_root_parent]
+                    if args.debug:
+                        slice_from_args.append("--debug")
+                    # Run from root_abs so paths resolve correctly
+                    subprocess.run(slice_from_args, check=True, cwd=root_abs)
+                except subprocess.CalledProcessError as e:
+                    print(json.dumps({"status": "error", "reason": "slice_from_json.py failed", "returncode": e.returncode}))
+                    sys.exit(1)
+
+            print(json.dumps({"status": "pre_slice", "step": "done"}))
+
+    # Track already-processed alethe files to avoid duplicates
+    processed_alethe = set()
+
+    for dirpath, dirnames, filenames in os.walk(root_abs):
+        # Skip sliced_proofs directory to avoid processing generated slices
+        if "sliced_proofs" in dirnames:
+            dirnames.remove("sliced_proofs")
+
         for fname in filenames:
             if not fname.endswith(".smt2.alethe"):
                 continue
+            # Skip sliced alethe files (they have __from- in the name)
+            if "__from-" in fname:
+                continue
 
             alethe_path = os.path.join(dirpath, fname)
+
+            # Skip if already processed (avoid duplicates)
+            if alethe_path in processed_alethe:
+                continue
+            processed_alethe.add(alethe_path)
+
             rel_dir = os.path.relpath(dirpath, root_abs)
             base_name = os.path.splitext(os.path.basename(alethe_path[:-7]))[0]
 
@@ -254,12 +359,27 @@ def main():
                 if os.path.isfile(guessed):
                     smt2_for_slice = guessed
                 else:
-                    print(json.dumps({
-                        "status":"not_found",
-                        "reason":"matching .smt2 not found",
-                        "alethe": rel_to(root_abs, alethe_path)
-                    }))
-                    continue
+                    # Fallback: search entire root and sliced_proofs for the smt2 file
+                    found = search_smt2_in_tree(root_abs, base_name)
+                    if not found:
+                        found = search_smt2_in_tree(sliced_root, base_name)
+                    if found:
+                        smt2_for_slice = found
+                        if args.debug:
+                            print(json.dumps({"debug": "smt2_found_via_search", "path": found}))
+                    else:
+                        # Try to restore from git history
+                        expected_smt2 = os.path.join(dirpath, f"{base_name}.smt2")
+                        if restore_smt2_from_git(expected_smt2, root_abs, args.debug):
+                            smt2_for_slice = expected_smt2
+                            print(json.dumps({"status": "restored", "reason": "smt2 restored from git", "path": rel_to(root_abs, expected_smt2)}))
+                        else:
+                            print(json.dumps({
+                                "status":"not_found",
+                                "reason":"matching .smt2 not found (also not in git)",
+                                "alethe": rel_to(root_abs, alethe_path)
+                            }))
+                            continue
 
             holes = holes_in_alethe(alethe_path)
             if args.debug:
@@ -270,7 +390,7 @@ def main():
                 slice_path = os.path.join(out_dir, slice_name)
                 out_log_path = os.path.join(out_dir, f"{base_name}__from-{hole_name}.out")
 
-                slice_cached = os.path.exists(slice_path)
+                slice_cached = os.path.exists(slice_path) and not args.no_cache
                 if not slice_cached:
                     ok_slice, stderr_path = run_slice(
                         from_hole=hole_name,
@@ -318,7 +438,7 @@ def main():
                     else:
                         smt2_dest = smt2_for_slice
 
-                elaborate_cached = os.path.exists(out_log_path)
+                elaborate_cached = os.path.exists(out_log_path) and not args.no_cache
                 if elaborate_cached:
                     print(json.dumps({
                         "status": "ok",

@@ -185,6 +185,13 @@ def main():
                     "err_file": os.path.relpath(err_file, out_root_parent)
                 }))
 
+            # Copy the .smt2 file to the output directory if not already there
+            dest_smt2 = os.path.join(out_dir, f"{base_name}.smt2")
+            if not os.path.exists(dest_smt2) and os.path.isfile(src_smt2):
+                shutil.copy2(src_smt2, dest_smt2)
+                if args.debug:
+                    print(json.dumps({"debug": "smt2_copied", "src": src_smt2, "dest": dest_smt2}))
+
             start_ns = time.monotonic_ns()
             with open(out_file, "w", encoding="utf-8") as out_f, open(err_file, "w", encoding="utf-8") as err_f:
                 proc = subprocess.check_output(
@@ -192,7 +199,7 @@ def main():
                     text=True,
                 )
                 out_f.write(proc)
-                
+
             end_ns = time.monotonic_ns()
             elapsed = human_elapsed(end_ns - start_ns)
 
