@@ -8,11 +8,12 @@
     "smt2": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691.smt2",
     "out": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691__from-t1.out",
     "ok": true,
-    "success": 1,
+    "success": 0,
     "failed": 0,
     "panicked": false,
     "timeout": false,
-    "elapsed": "64ms"
+    "oom_killed": false,
+    "elapsed": "215ms"
   }
 ,
 {
@@ -24,11 +25,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691.smt2",
   "out": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691__from-t4.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "215ms"
 }
 ,
 {
@@ -39,12 +41,13 @@
   "slice": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691__from-t6.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691.smt2",
   "out": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691__from-t6.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "13.95s"
 }
 ,
 {
@@ -60,7 +63,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "265ms"
 }
 ,
 {
@@ -72,11 +76,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691.smt2",
   "out": "sliced_proofs/QF_UFLIA/TwoSquares/smtlib.606691/smtlib.606691__from-t11.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -88,11 +93,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t4.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -103,12 +109,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t52.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t52.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "265ms"
 }
 ,
 {
@@ -120,11 +127,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t54.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -135,12 +143,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t56.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t56.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "11.24s"
 }
 ,
 {
@@ -156,7 +165,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "43.73s"
 }
 ,
 {
@@ -167,12 +177,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t121.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t121.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "3.82s"
 }
 ,
 {
@@ -188,7 +199,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "65ms"
+  "oom_killed": false,
+  "elapsed": "50.16s"
 }
 ,
 {
@@ -204,7 +216,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "415ms"
 }
 ,
 {
@@ -215,12 +228,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t130.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t130.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "4.42s"
 }
 ,
 {
@@ -231,12 +245,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t131.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t131.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "4.53s"
 }
 ,
 {
@@ -247,12 +262,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t133.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t133.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "8.74s"
 }
 ,
 {
@@ -263,12 +279,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t135.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t135.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "10.60s"
 }
 ,
 {
@@ -284,7 +301,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "20.12s"
 }
 ,
 {
@@ -300,7 +318,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "215ms"
 }
 ,
 {
@@ -312,11 +331,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t157.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -327,12 +347,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t158.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-05-06-2-2-5-1/xs-05-06-2-2-5-1__from-t158.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "4.63s"
 }
 ,
 {
@@ -348,7 +369,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "19.72s"
 }
 ,
 {
@@ -364,7 +386,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -380,7 +403,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "265ms"
 }
 ,
 {
@@ -391,12 +415,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t34.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t34.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "10.99s"
 }
 ,
 {
@@ -407,12 +432,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t36.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t36.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "10.64s"
 }
 ,
 {
@@ -428,7 +454,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "34.46s"
 }
 ,
 {
@@ -439,12 +466,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t40.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t40.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "265ms"
 }
 ,
 {
@@ -456,11 +484,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t42.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -471,12 +500,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t44.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t44.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "65ms"
+  "oom_killed": false,
+  "elapsed": "10.74s"
 }
 ,
 {
@@ -492,7 +522,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "43.03s"
 }
 ,
 {
@@ -504,11 +535,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t59.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -520,11 +552,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t106.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "215ms"
 }
 ,
 {
@@ -535,12 +568,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t107.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t107.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "4.63s"
 }
 ,
 {
@@ -556,7 +590,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "19.77s"
 }
 ,
 {
@@ -572,7 +607,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "214ms"
 }
 ,
 {
@@ -588,7 +624,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "265ms"
 }
 ,
 {
@@ -599,12 +636,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t141.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t141.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "3.77s"
 }
 ,
 {
@@ -620,7 +658,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "50.70s"
 }
 ,
 {
@@ -636,7 +675,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "415ms"
 }
 ,
 {
@@ -647,12 +687,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t185.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t185.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "4.42s"
 }
 ,
 {
@@ -663,12 +704,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t186.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t186.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "4.33s"
 }
 ,
 {
@@ -679,12 +721,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t188.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t188.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "8.69s"
 }
 ,
 {
@@ -695,12 +738,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t190.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Wisa/xs-06-14-3-1-5-2/xs-06-14-3-1-5-2__from-t190.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "10.59s"
 }
 ,
 {
@@ -716,7 +760,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "20.12s"
 }
 ,
 {
@@ -732,7 +777,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "215ms"
 }
 ,
 {
@@ -743,12 +789,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/EufLaArithmetic/medium/medium11/medium11__from-t24.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/EufLaArithmetic/medium/medium11/medium11.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/EufLaArithmetic/medium/medium11/medium11__from-t24.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "47.54s"
 }
 ,
 {
@@ -759,12 +806,13 @@
   "slice": "sliced_proofs/QF_UFLIA/mathsat/EufLaArithmetic/medium/medium11/medium11__from-t305.smt2.alethe",
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/EufLaArithmetic/medium/medium11/medium11.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/EufLaArithmetic/medium/medium11/medium11__from-t305.out",
-  "ok": false,
+  "ok": true,
   "success": 0,
-  "failed": 1,
+  "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "47.24s"
 }
 ,
 {
@@ -776,11 +824,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_04_04/hash_uns_04_04.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_04_04/hash_uns_04_04__from-t1.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "415ms"
 }
 ,
 {
@@ -796,7 +845,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "365ms"
 }
 ,
 {
@@ -808,11 +858,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_04_04/hash_uns_04_04.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_04_04/hash_uns_04_04__from-t8.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "816ms"
 }
 ,
 {
@@ -824,11 +875,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_04_04/hash_uns_04_04.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_04_04/hash_uns_04_04__from-t11.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "164ms"
 }
 ,
 {
@@ -840,11 +892,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_03_16/hash_uns_03_16.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_03_16/hash_uns_03_16__from-t1.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "465ms"
 }
 ,
 {
@@ -860,7 +913,8 @@
   "failed": 1,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "365ms"
 }
 ,
 {
@@ -872,11 +926,12 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_03_16/hash_uns_03_16.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_03_16/hash_uns_03_16__from-t8.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "766ms"
 }
 ,
 {
@@ -888,10 +943,11 @@
   "smt2": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_03_16/hash_uns_03_16.smt2",
   "out": "sliced_proofs/QF_UFLIA/mathsat/Hash/hash_uns_03_16/hash_uns_03_16__from-t11.out",
   "ok": true,
-  "success": 1,
+  "success": 0,
   "failed": 0,
   "panicked": false,
   "timeout": false,
-  "elapsed": "64ms"
+  "oom_killed": false,
+  "elapsed": "164ms"
 }
 ]

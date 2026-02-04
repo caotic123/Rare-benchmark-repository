@@ -1,0 +1,1226 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; Base theory
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(datatype Term (Bool bool) (Num i64) (Real i64) (Sort Term) (Empty) (Args Term Term) (Mk Term))
+(relation Avaliable (Term))
+(rewrite (Args (Args t1 t2) t3) (Args t1 (Args t2 t3)))
+(rewrite (Args t1 (Args t2 t3)) (Args (Args t1 t2) t3))
+
+; Arith ops required
+(constructor @- (Term) Term)
+(constructor @+ (Term) Term)
+(constructor @* (Term) Term)
+(constructor @/ (Term) Term)
+(constructor @/_total (Term) Term)
+
+; Comparison
+(constructor @= (Term) Term)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Minimal theory about arith ops
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(rewrite 
+(Mk (@+ (Args (Mk (Num x)) (Args (Mk (Num y)) (Empty)))))
+(Mk (Num (+ x y))))
+
+(rewrite 
+(Mk (@* (Args (Mk (Num x)) (Args (Mk (Num y)) (Empty)))))
+(Mk (Num (* x y))))
+
+(rewrite 
+(Mk (@- (Args (Mk (Num x)) (Args (Mk (Num y)) (Empty)))))
+(Mk (Num (- x y))))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; Theory of polynomials
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; Constructors of polynomials and related terms.
+(constructor @mon (Term) Term)
+(constructor @poly_zero () Term)
+(constructor @poly (Term) Term)
+(constructor @to_real (Term) Term)
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; @$compare_var
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; Comparison of variables.
+(constructor @$compare_var (Term) Term)
+
+; TODO: minimal rewriting theory of @$compare_var, for testing purposes, 
+;       assuming that variables are just numbers
+(rewrite 
+(Mk (@$compare_var (Args (Mk (Num a)) (Args (Mk (Num b)) (Empty)))))
+(Mk (Bool true))
+:when ((<= a b)))
+
+(rewrite 
+(Mk (@$compare_var (Args (Mk (Num a)) (Args (Mk (Num b)) (Empty)))))
+(Mk (Bool false))
+:when ((> a b)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+; @$is_arith_exp
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Simple predicate to recognice arith expressions.
+(constructor @$is_arith_exp (Term) Term)
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@- (Args (Mk a) (Empty)))) (Empty))))
+(Mk (Bool true)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@+ (Args (Mk a) (Args (Mk b) (Empty))))) (Empty))))
+(Mk (Bool true)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@- (Args (Mk a) (Args (Mk b) (Empty))))) (Empty))))
+(Mk (Bool true)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@* (Args (Mk a) (Args (Mk b) (Empty))))) (Empty))))
+(Mk (Bool true)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@/ (Args (Mk a) (Args (Mk b) (Empty))))) (Empty))))
+(Mk (Bool true)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@/_total (Args (Mk a) (Args (Mk b) (Empty))))) (Empty))))
+(Mk (Bool true)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@to_real (Args (Mk a) (Empty)))) (Empty))))
+(Mk (Bool true)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@poly (Args (Mk m) (Args (Mk p) (Empty))))) (Empty))))
+(Mk (Bool false)))
+
+(rewrite 
+(Mk (@$is_arith_exp (Args (Mk (@poly_zero)) (Empty))))
+(Mk (Bool false)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $poly_neg
+;;;;;;;;;;;;;;;;;;;;;;;
+(constructor @$poly_neg (Term) Term)
+ 
+(rewrite 
+(Mk (@$poly_neg (Args (Mk (@poly_zero)) (Empty))))
+(Mk (@poly_zero)))
+
+(rewrite 
+(Mk (@$poly_neg 
+    (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a) (Args (Mk c) (Empty)))))
+                           (Args (Mk p2) (Empty))))) (Empty))))
+(Mk (@poly 
+    (Args (Mk (@mon (Args (Mk a) (Args (Mk (@- (Args (Mk c) (Empty)))) (Empty)))))
+          (Args (Mk (@$poly_neg (Args (Mk p2) (Empty)))) (Empty))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $poly_add
+;;;;;;;;;;;;;;;;;;;;;;;
+(constructor @$poly_add (Term) Term)
+
+; Case (($poly_add @poly.zero p) p)
+(rewrite 
+(Mk (@$poly_add (Args (Mk (@poly_zero)) (Args (Mk p) (Empty)))))
+(Mk p))
+
+; Case (($poly_add p @poly.zero) p)
+(rewrite 
+(Mk (@$poly_add (Args (Mk p) (Args (Mk (@poly_zero)) (Empty)))))
+(Mk p)
+:when ((!= (Mk p) (Mk (@poly_zero)))))
+
+; Case 
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a1 c2) p2)) =
+; (@poly (@mon a1 (+ c1 c2)) (@poly_add p1 p2))
+; when (+ c1 c2) != 0
+(rewrite
+(Mk (@$poly_add
+    (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a1) (Args (Mk (Num c1)) (Empty)))))
+                           (Args (Mk p1) (Empty)))))
+          (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a1) (Args (Mk (Num c2)) (Empty)))))
+                           (Args (Mk p2) (Empty)))))
+                 (Empty)))))
+(Mk (@poly (Args (Mk (@mon (Args (Mk a1)
+                           (Args (Mk (@+ (Args (Mk (Num c1)) (Args (Mk (Num c2))
+                                                                   (Empty)))))
+                                 (Empty)))))
+                 (Args (Mk (@$poly_add (Args (Mk p1) (Args (Mk p2) (Empty)))))
+                       (Empty)))))
+:when ((!= (Mk (@+ (Args (Mk (Num c1)) (Args (Mk (Num c2)) (Empty))))) (Mk (Num 0))))
+)
+
+; Case 
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a1 c2) p2)) =
+; (@poly (@mon a1 (+ c1 c2)) (@poly_add p1 p2))
+; when (+ c1 c2) = 0
+(rewrite
+(Mk (@$poly_add
+    (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a1) (Args (Mk (Num c1)) (Empty)))))
+                           (Args (Mk p1) (Empty)))))
+          (Mk (@poly (Args (Mk (@mon (Args (Mk a1) (Args (Mk (Num c2)) (Empty)))))
+                           (Args (Mk p2) (Empty))))))))
+(Mk (@$poly_add (Args (Mk p1) (Args (Mk p2) (Empty)))))
+:when ((= (Mk (@+ (Args (Mk (Num c1)) (Args (Mk (Num c2)) (Empty))))) (Mk (Num 0))))
+)
+
+; Case 
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) =
+; (@poly (@mon a1 (+ c1 c2)) (@poly_add p1 p2))
+; when a1 != a2, @$compare_var a1 a2 = true
+(rewrite
+(Mk (@$poly_add
+    (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a1) (Args (Mk (Num c1)) (Empty)))))
+                           (Args (Mk p1) (Empty)))))
+          (Mk (@poly (Args (Mk (@mon (Args (Mk a2) (Args (Mk (Num c2)) (Empty)))))
+                           (Args (Mk p2) (Empty))))))))
+(Mk (@poly (Args (Mk (@mon (Args (Mk a1) (Args (Mk (Num c1)) (Empty)))))
+                 (Args (Mk (@$poly_add (Args (Mk p1)
+                                       (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a2) 
+                                                        (Args (Mk (Num c2)) 
+                                                              (Empty)))))
+                                                        (Args (Mk p2) (Empty)))))
+                                                    (Empty)))))
+                       (Empty)))))
+:when ((!= a1 a2)
+       (= (Mk (@$compare_var (Args (Mk a1) (Args (Mk a2) (Empty))))) (Mk (Bool true))))
+)
+
+; Case 
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) =
+; (@poly (@mon a1 (+ c1 c2)) (@poly_add p1 p2))
+; when a1 != a2, @$compare_var a1 a2 = true
+(rewrite
+(Mk (@$poly_add
+    (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a1) (Args (Mk (Num c1)) (Empty)))))
+                           (Args (Mk p1) (Empty)))))
+          (Mk (@poly (Args (Mk (@mon (Args (Mk a2) (Args (Mk (Num c2)) (Empty)))))
+                           (Args (Mk p2) (Empty))))))))
+(Mk (@poly (Args (Mk (@mon (Args (Mk a2) (Args (Mk (Num c2)) (Empty)))))
+                 (Args (Mk (@$poly_add (Args (Mk p2)
+                                             (Args (Mk (@poly (Args (Mk (@mon (Args (Mk a1) 
+                                                                              (Args (Mk (Num c1)) (Empty)))))
+                                                                    (Args (Mk p1) (Empty)))))
+                                                    (Empty)))))
+                       (Empty)))))
+:when ((!= a1 a2)
+       (= (Mk (@$compare_var (Args (Mk a1) (Args (Mk a2) (Empty))))) (Mk (Bool false))))
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; $poly_mul and related stuff
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $mvar_mul_mvar
+;;;;;;;;;;;;;;;;;;;;;;;
+(constructor @$mvar_mul_mvar (Term) Term)
+
+; Case ($mvar_mul_mvar (* a1 c1) (* a2 c2))
+;      (eo::cons * a1 ($mvar_mul_mvar c1 (* a2 c2)))
+; when $compare_var a1 a2 = true
+(rewrite
+(Mk (@$mvar_mul_mvar (Args (Mk (@* (Args (Mk a1) (Args (Mk c1) (Empty)))))
+                     (Args (Mk (@* (Args (Mk a2) (Args (Mk c2) (Empty)))))
+                           (Empty)))))
+(Mk (@* (Args (Mk a1) 
+        (Args (Mk (@$mvar_mul_mvar 
+                  (Args (Mk c1)
+                        (Args (Mk (@* (Args (Mk a2) (Args (Mk c2) (Empty)))))
+                              (Empty)))))
+              (Empty)))))
+:when ((= (Mk (@$compare_var (Args (Mk a1) (Args (Mk a2) (Empty))))) 
+          (Mk (Bool true))))
+)
+
+; Case ($mvar_mul_mvar (* a1 c1) (* a2 c2))
+;      (eo::cons * a1 ($mvar_mul_mvar c1 (* a2 c2)))
+; when $compare_var a1 a2 = false
+(rewrite
+(Mk (@$mvar_mul_mvar (Args (Mk (@* (Args (Mk a1) (Args (Mk c1) (Empty)))))
+                           (Args (Mk (@* (Args (Mk a2) (Args (Mk c2) (Empty)))))
+                                 (Empty)))))
+(Mk (@* (Args (Mk a2)
+        (Args (Mk (@$mvar_mul_mvar 
+                  (Args (Mk (@* (Args (Mk a1) (Args (Mk c1) (Empty)))))
+                        (Args (Mk c2) (Empty)))))
+              (Empty)))))
+:when ((= (Mk (@$compare_var (Args (Mk a1) (Args (Mk a2) (Empty))))) (Mk (Bool false)))))
+
+; Case ($mvar_mul_mvar (* a1 c1) 1)
+;      (* a1 c1)
+(rewrite
+(Mk (@$mvar_mul_mvar (Args (Mk (@* (Args (Mk a1) (Args (Mk c1) (Empty)))))
+                           (Args (Mk (Num 1)) (Empty)))))
+(Mk (@* (Args (Mk a1) (Args (Mk c1) (Empty))))))
+
+; Case ($mvar_mul_mvar 1 (* a1 c1))
+;      (* a1 c1)
+(rewrite
+(Mk (@$mvar_mul_mvar (Args (Mk (Num 1))
+                           (Args (Mk (@* (Args (Mk a1) (Args (Mk c1) (Empty))))) (Empty)))))
+(Mk (@* (Args (Mk a1) (Args (Mk c1) (Empty))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $mon_mul_mon
+;;;;;;;;;;;;;;;;;;;;;;;
+(constructor @$mon_mul_mon (Term) Term)
+
+; Case (($mon_mul_mon (@mon a1 c1) (@mon a2 c2))  
+;       (@mon ($mvar_mul_mvar a1 a2) (eo::mul c1 c2)))
+(rewrite
+(Mk (@$mon_mul_mon (Args (Mk (@mon (Args (Mk a1) (Args (Mk c1) (Empty)))))
+                         (Args (Mk (@mon (Args (Mk a2) (Args (Mk c2) (Empty)))))
+                               (Empty)))))
+(Mk (@mon (Args (Mk (@$mvar_mul_mvar (Args (Mk a1) (Args (Mk a2) (Empty)))))
+                (Args (Mk (@* (Args (Mk c1) (Args (Mk c2) (Empty)))))
+                      (Empty))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $poly_mul_mon
+;;;;;;;;;;;;;;;;;;;;;;;
+(constructor @$poly_mul_mon (Term) Term)
+
+; Case (($poly_mul_mon m1 (@poly m2 p2)) 
+;       ($poly_add (@poly ($mon_mul_mon m1 m2)) ($poly_mul_mon m1 p2)))
+(rewrite 
+(Mk (@$poly_mul_mon (Args (Mk m1)
+                          (Args (Mk (@poly (Args (Mk m2) (Args (Mk p2) (Empty)))))
+                                (Empty)))))
+(Mk (@$poly_add 
+    (Args (Mk (@poly 
+              (Args (Mk (@$mon_mul_mon (Args (Mk m1) (Args (Mk m2) (Empty)))))
+                    (Args (Mk (@$poly_mul_mon (Args (Mk m1) (Args (Mk p2) (Empty)))))
+                          (Empty)))))
+          (Empty)))))
+
+; Case (($poly_mul_mon m1 @poly.zero)    @poly.zero)
+(rewrite 
+(Mk (@$poly_mul_mon (Args (Mk m1) (Args (Mk (@poly_zero)) (Empty)))))
+(Mk (@poly_zero)))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $poly_mul
+;;;;;;;;;;;;;;;;;;;;;;;
+
+(constructor @$poly_mul (Term) Term)
+
+; Case (($poly_mul (@poly m p1) p) 
+;        ($poly_add ($poly_mul_mon m p) ($poly_mul p1 p)))
+(rewrite 
+(Mk (@$poly_mul (Args (Mk (@poly (Args (Mk m) (Args (Mk p1) (Empty))))) 
+                      (Args (Mk p) (Empty)))))
+(Mk (@$poly_add (Args (Mk (@$poly_mul_mon (Args (Mk m) (Args (Mk p) (Empty)))))
+                      (Args (Mk (@$poly_mul (Args (Mk p1) (Args (Mk p) (Empty)))))
+                            (Empty))))))
+
+; Case (($poly_mul @poly.zero p)   @poly.zero)
+(rewrite 
+(Mk (@$poly_mul (Args (Mk (@poly_zero)) 
+                      (Args (Mk p) (Empty)))))
+(Mk (@poly_zero)))
+
+; Case (($poly_mul p @poly.zero)   @poly.zero)
+(rewrite 
+(Mk (@$poly_mul (Args (Mk p) 
+                      (Args (Mk (@poly_zero)) (Empty)))))
+(Mk (@poly_zero)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+; $get_arith_poly_norm_div
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(constructor @$get_arith_poly_norm_div (Term) Term)
+
+; Case ($get_arith_poly_norm_div a1 a1p a2) 
+;      ($poly_mul_mon (@mon 1 (eo::qdiv 1/1 a2)) a1p) 
+(rewrite
+(Mk (@$get_arith_poly_norm_div (Args (Mk (Num a1)) 
+                                     (Args (Mk a1p)
+                                           (Args (Mk (Num a2)) 
+                                                 (Empty))))))
+(Mk (@$poly_mul_mon 
+    (Args (Mk (@mon (Args (Mk (Num 1))
+                    (Args (Mk (@/ (Args (Mk (Num 1))
+                                  (Args (Mk (Num a2)) (Empty)))))
+                          (Empty)))))
+          (Args (Mk a1p) (Empty)))))
+:when ((!= a2 0)))
+
+; Case ($get_arith_poly_norm_div a1 a1p 0) 
+;      (@poly (@mon (* (/ a1 0)) 1/1))
+(rewrite
+(Mk (@$get_arith_poly_norm_div (Args (Mk (Num a1)) 
+                                     (Args (Mk a1p)
+                                           (Args (Mk (Num 0)) (Empty))))))
+(Mk (@poly (Args (Mk (@mon (Args (@* (Args (Mk (@/ (Args (Mk (Num a1))
+                                                         (Args (Mk (Num 0))
+                                                               (Empty)))))
+                                           (Args (Mk (Num 1)) (Empty))))
+                                  (Args (Mk (Num 1)) (Empty)))))
+                  (Args (Mk (@poly_zero)) (Empty))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $get_arith_poly_norm
+;;;;;;;;;;;;;;;;;;;;;;;
+(constructor @$get_arith_poly_norm (Term) Term)
+
+; Case (($get_arith_poly_norm (- a1))          
+;      ($poly_neg ($get_arith_poly_norm a1)))
+(rewrite
+(Mk (@$get_arith_poly_norm (Args (Mk (@- (Args (Mk a1) (Empty)))) (Empty))))
+(Mk (@$poly_neg (Args (Mk (@$get_arith_poly_norm (Args (Mk a1) (Empty))))
+                      (Empty)))))
+
+; Case (($get_arith_poly_norm (+ a1 a2))
+;      ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
+(rewrite
+(Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk a1) (Args (Mk a2) (Empty))))) (Empty))))
+(Mk (@$poly_add (Args (Mk (@$get_arith_poly_norm (Args (Mk a1) (Empty))))
+                      (Args (Mk (@$get_arith_poly_norm (Args (Mk a2) (Empty))))
+                            (Empty))))))
+
+; Case (($get_arith_poly_norm (- a1 a2))
+;       ($poly_add ($get_arith_poly_norm a1) ($poly_neg ($get_arith_poly_norm a2))))
+(rewrite
+(Mk (@$get_arith_poly_norm (Args (Mk (@- (Args (Mk a1) (Args (Mk a2) (Empty))))) 
+                                                                     (Empty))))
+(Mk (@$poly_add (Args (Mk (@$get_arith_poly_norm (Args (Mk a1) (Empty))))
+                      (Args
+                        (Mk (@$poly_neg (Args (Mk (@$get_arith_poly_norm 
+                                                  (Args (Mk a2) (Empty))))
+                                              (Empty))))
+                        (Empty))))))
+
+; Case (($get_arith_poly_norm (* a1 a2))       
+;      ($poly_mul ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
+(rewrite 
+(Mk (@$get_arith_poly_norm (Args (Mk (@* (Args (Mk a1) (Args (Mk a2) (Empty)))))
+                                                                     (Empty))))
+(Mk (@$poly_mul (Args (Mk (@$get_arith_poly_norm (Args (Mk a1) (Empty))))
+                      (Args
+                        (Mk (@$get_arith_poly_norm (Args (Mk a2) (Empty))))
+                        (Empty))))))
+
+; Case (($get_arith_poly_norm (/ a1 a2))       
+;      ($get_arith_poly_norm_div a1 ($get_arith_poly_norm a1) a2))
+(rewrite 
+(Mk (@$get_arith_poly_norm (Args (Mk (@/ (Args (Mk a1) (Args (Mk a2) (Empty)))))
+                                 (Empty))))
+(Mk (@$get_arith_poly_norm_div 
+        (Args (Mk a1)
+              (Args (Mk (@$get_arith_poly_norm (Args (Mk a1) (Empty))))
+                    (Args (Mk a2) (Empty)))))))
+
+; Case (($get_arith_poly_norm (/_total a1 a2))       
+;      ($get_arith_poly_norm_div a1 ($get_arith_poly_norm a1) a2))
+(rewrite 
+(Mk (@$get_arith_poly_norm (Args (Mk (@/_total (Args (Mk a1) (Args (Mk a2) (Empty)))))
+                                 (Empty))))
+(Mk (@$get_arith_poly_norm_div 
+        (Args (Mk a1)
+              (Args (Mk (@$get_arith_poly_norm (Args (Mk a1) (Empty))))
+                    (Args (Mk a2) (Empty)))))))
+
+
+; Case (($get_arith_poly_norm (to_real a1)) ($get_arith_poly_norm a1))
+(rewrite 
+(Mk (@$get_arith_poly_norm (Args (Mk (@to_real (Args (Mk x) (Empty)))) (Empty))))
+(Mk (@$get_arith_poly_norm (Args (Mk x) (Empty)))))
+
+; Case (($get_arith_poly_norm (Num 0)) (@poly.zero)
+(rewrite 
+(Mk (@$get_arith_poly_norm (Args (Mk (Num 0)) (Empty))))
+(Mk (@poly_zero)))
+
+; Case (($get_arith_poly_norm (Num x)) (@poly (@mon 1 x)), when x != 0
+(rewrite 
+(Mk (@$get_arith_poly_norm (Args (Mk (Num x)) (Empty))))
+(Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num x)) (Empty)))))
+                 (Args (Mk (@poly_zero)) (Empty)))))
+:when ((!= x 0)))
+
+; Case (($get_arith_poly_norm x (@poly (@mon 1 x)), 
+; when x is not a number, nor an arith exp
+(rewrite 
+(Mk (@$get_arith_poly_norm (Args (Mk x) (Empty))))
+(Mk (@poly (Args (Mk (@mon (Args (Mk (@* (Args (Mk x) (Args (Mk (Num 1)) (Empty)))))
+                             (Args (Mk (Num 1)) (Empty)))))
+                  (Args (Mk (@poly_zero)) (Empty)))))
+:when ((= (Mk (@$is_arith_exp (Args (Mk x) (Empty)))) (Mk (Bool false)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; arith_poly_norm
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; (declare-rule arith_poly_norm ((U Type) (a U) (b U))
+;   :args ((= a b))
+;   :requires ((($get_arith_poly_norm a) ($get_arith_poly_norm b)))
+;   :conclusion (= a b)
+; )
+(rewrite 
+(Mk poly1)
+(Mk poly2)
+:when ((= (@$get_arith_poly_norm (Args (Mk poly1) (Empty)))
+          (@$get_arith_poly_norm (Args (Mk poly2) (Empty))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; Tests suite
+;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; compare_var
+;;;;;;;;;;;;;;;;;;;;;;;
+
+(let goal_compare1_lhs (Mk (@$compare_var (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty))))))
+(let goal_compare1_rhs (Mk (Bool true)))
+(Avaliable goal_compare1_lhs)
+(Avaliable goal_compare1_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_compare1_lhs goal_compare1_rhs))
+
+(let goal_compare2_lhs (Mk (@$compare_var (Args (Mk (Num 1)) (Args (Mk (Num 3)) (Empty))))))
+(let goal_compare2_rhs (Mk (Bool true)))
+(Avaliable goal_compare2_lhs)
+(Avaliable goal_compare2_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_compare2_lhs goal_compare2_rhs))
+
+(let goal_compare3_lhs (Mk (@$compare_var (Args (Mk (Num 3)) (Args (Mk (Num 1)) (Empty))))))
+(let goal_compare3_rhs (Mk (Bool false)))
+(Avaliable goal_compare3_lhs)
+(Avaliable goal_compare3_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_compare3_lhs goal_compare3_rhs))
+
+(let goal_compare4_lhs (Mk (@$compare_var (Args (Mk (Num 2)) (Args (Mk (Num 1)) (Empty))))))
+(let goal_compare4_rhs (Mk (Bool false)))
+(Avaliable goal_compare4_lhs)
+(Avaliable goal_compare4_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_compare4_lhs goal_compare4_rhs))
+
+(let goal_compare5_lhs (Mk (@$compare_var (Args (Mk (Num 2)) (Args (Mk (Num 5)) (Empty))))))
+(let goal_compare5_rhs (Mk (Bool true)))
+(Avaliable goal_compare5_lhs)
+(Avaliable goal_compare5_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_compare5_lhs goal_compare5_rhs))
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+; @$is_arith_exp
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+(let goal_is_arith_exp_lhs 
+     (Mk (@$is_arith_exp (Args (Mk (@poly_zero)) (Empty)))))
+(let goal_is_arith_exp_rhs (Mk (Bool false)))
+(Avaliable goal_is_arith_exp_lhs)
+(Avaliable goal_is_arith_exp_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_is_arith_exp_lhs goal_is_arith_exp_rhs))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; @$poly_neg
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; base case
+(let goal_lhs (Mk (@$poly_neg (Args (Mk (@poly_zero)) (Empty)))))
+(let goal_rhs (Mk (@poly_zero)))
+(Avaliable goal_lhs)
+(Avaliable goal_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_lhs goal_rhs))
+
+; rec. case
+(let goal2_lhs (Mk (@$poly_neg (Args (Mk (@poly_zero)) (Empty)))))
+(let goal2_rhs (Mk (@poly_zero)))
+(Avaliable goal_lhs)
+(Avaliable goal_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal_lhs goal_rhs))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; @$poly_add
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; base cases
+; Case (($poly_add @poly.zero p) p)
+(let goal3_lhs (Mk (@$poly_add (Args (Mk (@poly_zero)) 
+                               (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                                (Args (Mk (Num 4)) (Empty)))))
+                                                      (Args (Mk (@poly_zero)) (Empty))))) 
+                                      (Empty))))))
+(let goal3_rhs (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                 (Args (Mk (Num 4)) (Empty)))))
+                          (Args (Mk (@poly_zero)) (Empty))))))
+(Avaliable goal3_lhs)
+(Avaliable goal3_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal3_lhs goal3_rhs))
+
+; Case (($poly_add p @poly.zero) p)
+(let goal4_lhs (Mk (@$poly_add (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                                (Args (Mk (Num 4)) (Empty)))))
+                                                      (Args (Mk (@poly_zero)) (Empty)))))
+                                      (Args (Mk (@poly_zero)) (Empty))))))
+(let goal4_rhs (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                 (Args (Mk (Num 4)) (Empty)))))
+                          (Args (Mk (@poly_zero)) (Empty))))))
+(Avaliable goal4_lhs)
+(Avaliable goal4_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal4_lhs goal4_rhs))
+
+; Rec. case
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a1 c2) p2)) =
+; (@poly (@mon a1 (+ c1 c2)) (@poly_add p1 p2))
+; when (+ c1 c2) != 0
+
+(let goal5_add_lhs (Mk (@+ (Args (Mk (Num 2)) (Args (Mk (Num 4)) (Empty))))))
+(let goal5_add_rhs (Mk (Num 0)))
+(Avaliable goal5_add_lhs)
+(Avaliable goal5_add_rhs)
+(run-schedule (repeat 2 (run)))
+(check (!= goal5_add_lhs goal5_add_rhs))
+
+(let goal5_lhs 
+     (Mk (@$poly_add 
+         (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))
+               (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 4)) 
+                                                                   (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))
+                      (Empty))))))
+(let goal5_rhs (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1))
+                                          (Args (Mk (@+ (Args (Mk (Num 2)) (Args (Mk (Num 4)) (Empty)))))
+                                                (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty))))))
+(Avaliable goal5_lhs)
+(Avaliable goal5_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal5_lhs goal5_rhs))
+
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a1 c2) p2)) =
+; (@poly_add p1 p2)
+; when (+ c1 c2) = 0
+
+(let goal6_add_lhs (Mk (@+ (Args (Mk (Num 2)) (Args (Mk (Num -2)) (Empty))))))
+(let goal6_add_rhs (Mk (Num 0)))
+(Avaliable goal6_add_lhs)
+(Avaliable goal6_add_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal6_add_lhs goal6_add_rhs))
+
+(let goal6_lhs 
+     (Mk (@$poly_add 
+         (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))
+               (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num -2)) (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))))))
+(let goal6_rhs (Mk (@poly_zero)))
+(Avaliable goal6_lhs)
+(Avaliable goal6_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal6_lhs goal6_rhs))
+
+; Case 
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) =
+; (@poly (@mon a1 (+ c1 c2)) (@poly_add p1 p2))
+; when a1 != a2, @$compare_var a1 a2 = true
+(let goal7_lhs 
+     (Mk (@$poly_add 
+         (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))
+               (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 2)) (Args (Mk (Num -2)) (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))))))
+(let goal7_rhs (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                                (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 2)) (Args (Mk (Num -2)) (Empty)))))
+                                             (Args (Mk (@poly_zero)) (Empty))))) (Empty))))))
+(Avaliable goal7_lhs)
+(Avaliable goal7_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal7_lhs goal7_rhs))
+
+; ($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) =
+; (@poly (@mon a1 (+ c1 c2)) (@poly_add p1 p2))
+; when a1 != a2, @$compare_var a1 a2 = false
+(let goal8_lhs 
+     (Mk (@$poly_add 
+         (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 2)) (Args (Mk (Num 2)) (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))
+               (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num -2)) (Empty)))))
+                                (Args (Mk (@poly_zero)) (Empty)))))))))
+(let goal8_rhs (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num -2)) (Empty)))))
+                                (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 2)) (Args (Mk (Num 2)) (Empty)))))
+                                             (Args (Mk (@poly_zero)) (Empty))))) (Empty))))))
+(Avaliable goal8_lhs)
+(Avaliable goal8_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal8_lhs goal8_rhs))
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+; @$mvar_mul_mvar
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Case ($mvar_mul_mvar (* a1 c1) (* a2 c2))
+;      (eo::cons * a1 ($mvar_mul_mvar c1 (* a2 c2)))
+; when $compare_var a1 a2 = true
+
+(let goal9_lhs 
+     (Mk (@$mvar_mul_mvar (Args (Mk (@* (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                           (Args (Mk (@* (Args (Mk (Num 3)) (Args (Mk (Num 4)) (Empty)))))
+                                 (Empty))))))
+(let goal9_rhs (Mk (@* (Args (Mk (Num 1)) 
+        (Args (Mk (@$mvar_mul_mvar 
+                  (Args (Mk (Num 2))
+                        (Args (Mk (@* (Args (Mk (Num 3)) (Args (Mk (Num 4)) (Empty)))))
+                              (Empty)))))
+              (Empty))))))
+(Avaliable goal9_lhs)
+(Avaliable goal9_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal9_lhs goal9_rhs))
+
+; Case ($mvar_mul_mvar (* a1 c1) (* a2 c2))
+;      (eo::cons * a1 ($mvar_mul_mvar c1 (* a2 c2)))
+; when $compare_var a1 a2 = false
+(let goal10_lhs 
+     (Mk (@$mvar_mul_mvar (Args (Mk (@* (Args (Mk (Num 3)) (Args (Mk (Num 2)) (Empty)))))
+                           (Args (Mk (@* (Args (Mk (Num 1)) (Args (Mk (Num 4)) (Empty)))))
+                                 (Empty))))))
+(let goal10_rhs (Mk (@* (Args (Mk (Num 1)) 
+        (Args (Mk (@$mvar_mul_mvar 
+                  (Args (Mk (@* (Args (Mk (Num 3)) (Args (Mk (Num 2)) (Empty)))))
+                        (Args (Mk (Num 4)) (Empty)))))
+              (Empty))))))
+(Avaliable goal10_lhs)
+(Avaliable goal10_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal10_lhs goal10_rhs))
+
+; Case ($mvar_mul_mvar (* a1 c1) 1)
+;      (* a1 c1)
+(let goal11_lhs 
+     (Mk (@$mvar_mul_mvar (Args (Mk (@* (Args (Mk (Num 3)) (Args (Mk (Num 2)) (Empty)))))
+                                (Args (Mk (Num 1)) (Empty))))))
+(let goal11_rhs (Mk (@* (Args (Mk (Num 3)) (Args (Mk (Num 2)) (Empty))))))
+(Avaliable goal11_lhs)
+(Avaliable goal11_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal11_lhs goal11_rhs))
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+; @$mon_mul_mon
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Case (($mon_mul_mon (@mon a1 c1) (@mon a2 c2))  
+;       (@mon ($mvar_mul_mvar a1 a2) (eo::mul c1 c2)))
+
+(let goal12_lhs 
+     (Mk (@$mon_mul_mon (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 2)) 
+                                                      (Args (Mk (Num 1)) (Empty)))))
+
+                                              (Args (Mk (Num 4)) (Empty)))))
+                              (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                                            (Args (Mk (Num 6)) (Empty)))))
+
+                                              (Args (Mk (Num 7)) (Empty)))))
+                                    (Empty))))))
+(let goal12_rhs 
+     (Mk (@mon (Args (Mk (@$mvar_mul_mvar (Args (Mk (@* (Args (Mk (Num 2)) 
+                                                      (Args (Mk (Num 1)) (Empty))))) 
+                                                      (Args (Mk (@* (Args (Mk (Num 5)) 
+                                                            (Args (Mk (Num 6)) (Empty))))) 
+                                                            (Empty)))))
+                (Args (Mk (@* (Args (Mk (Num 4)) (Args (Mk (Num 7)) (Empty)))))
+                      (Empty))))))
+(Avaliable goal12_lhs)
+(Avaliable goal12_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal12_lhs goal12_rhs))
+
+
+(let goal13_lhs 
+     (Mk (@$mon_mul_mon (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 2)) 
+                                                      (Args (Mk (Num 1)) (Empty)))))
+
+                                              (Args (Mk (Num 4)) (Empty)))))
+                              (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                                            (Args (Mk (Num 6)) (Empty)))))
+
+                                              (Args (Mk (Num 7)) (Empty)))))
+                                    (Empty))))))
+(let goal13_rhs 
+     (Mk (@mon (Args (Mk (@* (Args (Mk (Num 2)) 
+        (Args (Mk (@* (Args (Mk (Num 5)) (Args (Mk (Num 6)) (Empty)))))
+              (Empty)))))
+                (Args (Mk (@* (Args (Mk (Num 4)) (Args (Mk (Num 7)) (Empty)))))
+                      (Empty))))))
+(Avaliable goal13_lhs)
+(Avaliable goal13_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal13_lhs goal13_rhs))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $poly_mul_mon
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; Case (($poly_mul (@poly m p1) p) 
+;        ($poly_add ($poly_mul_mon m p) ($poly_mul p1 p)))
+(let goal14_lhs 
+     (Mk (@$poly_mul_mon (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                          (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                  (Args (Mk (Num 6)) (Empty))))) 
+                                                           (Args (Mk (Num 4)) (Empty))))) 
+                                           (Args (Mk (@poly_zero)) (Empty)))))
+                                (Empty))))))
+(let goal14_rhs 
+     (Mk (@$poly_add 
+    (Args (Mk (@poly 
+              (Args (Mk (@$mon_mul_mon (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                       (Args (Mk (Num 2)) (Empty))))) 
+                                       (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                  (Args (Mk (Num 6)) (Empty))))) 
+                                                           (Args (Mk (Num 4)) (Empty))))) 
+                                                           (Empty)))))
+                    (Args (Mk 
+                    (@$poly_mul_mon (Args 
+                                        (Mk (@mon (Args (Mk (Num 1)) 
+                                                  (Args (Mk (Num 2)) (Empty))))) 
+                                        (Args (Mk (@poly_zero)) (Empty)))))
+                          (Empty)))))
+          (Empty)))))
+(Avaliable goal14_lhs)
+(Avaliable goal14_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal14_lhs goal14_rhs))
+
+(let goal15_lhs 
+     (Mk (@$poly_mul_mon (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                          (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                  (Args (Mk (Num 6)) (Empty))))) 
+                                                           (Args (Mk (Num 4)) (Empty))))) 
+                                           (Args (Mk (@poly_zero)) (Empty)))))
+                                (Empty))))))
+(let goal15_rhs 
+     (Mk (@$poly_add 
+    (Args (Mk (@poly 
+              (Args (Mk (@$mon_mul_mon (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                       (Args (Mk (Num 2)) (Empty))))) 
+                                       (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                  (Args (Mk (Num 6)) (Empty))))) 
+                                                           (Args (Mk (Num 4)) (Empty))))) 
+                                                           (Empty)))))
+                    (Args (Mk (@poly_zero)) (Empty)))))
+          (Empty)))))
+(Avaliable goal15_lhs)
+(Avaliable goal15_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal15_lhs goal15_rhs))
+
+(let goal16_lhs 
+     (Mk (@$poly_mul_mon (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                          (Args (Mk (@poly 
+                          (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                  (Args (Mk (Num 6)) (Empty))))) 
+                                                           (Args (Mk (Num 4)) (Empty))))) 
+                                           (Args (Mk (@poly_zero)) (Empty)))))
+                                (Empty))))))
+(let goal16_rhs 
+     (Mk (@$poly_add 
+    (Args (Mk (@poly 
+              (Args (Mk (@mon (Args (Mk (@* (Args (Mk (Num 5)) 
+                                  (Args (Mk (Num 6)) (Empty)))))
+                    (Args (Mk (@* (Args (Mk (Num 2)) 
+                                  (Args (Mk (Num 4)) (Empty))))) (Empty)))))
+                    (Args (Mk (@poly_zero)) (Empty)))))
+          (Empty)))))
+(Avaliable goal16_lhs)
+(Avaliable goal16_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal16_lhs goal16_rhs))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $poly_mul
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; Case (($poly_mul (@poly m p1) p) 
+;        ($poly_add ($poly_mul_mon m p) ($poly_mul p1 p)))
+(let goal17_lhs 
+     (Mk (@$poly_mul (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty)))))
+                                            (Args (Mk (@poly_zero)) (Empty))))) 
+                      (Args (Mk (@poly_zero)) (Empty))))))
+(let goal17_rhs 
+     (Mk (@$poly_add (Args (Mk (@$poly_mul_mon (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty))))) 
+                                                      (Args (Mk (@poly_zero)) (Empty)))))
+                      (Args (Mk (@$poly_mul (Args (Mk (@poly_zero)) 
+                                                    (Args (Mk (@poly_zero)) (Empty)))))
+                            (Empty))))))
+(Avaliable goal17_lhs)
+(Avaliable goal17_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal17_lhs goal17_rhs))
+
+(let goal18_lhs 
+     (Mk (@$poly_mul (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty)))))
+                                            (Args (Mk (@poly_zero)) (Empty))))) 
+                      (Args (Mk (@poly_zero)) (Empty))))))
+(let goal18_rhs 
+     (Mk (@$poly_add (Args (Mk (@$poly_mul_mon (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty))))) 
+                                                      (Args (Mk (@poly_zero)) (Empty)))))
+                      (Args (Mk (@poly_zero))
+                            (Empty))))))
+(Avaliable goal18_lhs)
+(Avaliable goal18_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal18_lhs goal18_rhs))
+
+(let goal19_lhs 
+     (Mk (@$poly_mul (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty)))))
+                                            (Args (Mk (@poly_zero)) (Empty))))) 
+                      (Args (Mk (@poly_zero)) (Empty))))))
+(let goal19_rhs 
+     (Mk (@$poly_add (Args (Mk (@poly_zero))
+                      (Args (Mk (@poly_zero))
+                            (Empty))))))
+(Avaliable goal19_lhs)
+(Avaliable goal19_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal19_lhs goal19_rhs))
+
+(let goal20_lhs 
+     (Mk (@$poly_mul (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty)))))
+                                            (Args (Mk (@poly_zero)) (Empty))))) 
+                      (Args (Mk (@poly_zero)) (Empty))))))
+(let goal20_rhs 
+     (Mk (@poly_zero)))
+(Avaliable goal20_lhs)
+(Avaliable goal20_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal20_lhs goal20_rhs))
+
+; Case (($poly_mul @poly.zero p)   @poly.zero)
+
+(let goal21_lhs 
+     (Mk (@$poly_mul (Args  (Mk (@poly_zero))
+                      (Args (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty)))))
+                                            (Args (Mk (@poly_zero)) (Empty))))) (Empty))))))
+(let goal21_rhs 
+     (Mk (@poly_zero)))
+(Avaliable goal21_lhs)
+(Avaliable goal21_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal21_lhs goal21_rhs))
+
+; Case (($poly_mul p @poly.zero)   @poly.zero)
+
+(let goal22_lhs 
+     (Mk (@$poly_mul (Args  (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) 
+                                                      (Args (Mk (Num 2)) (Empty)))))
+                                            (Args (Mk (@poly_zero)) (Empty)))))
+                      (Args (Mk (@poly_zero)) (Empty))))))
+(let goal22_rhs 
+     (Mk (@poly_zero)))
+(Avaliable goal22_lhs)
+(Avaliable goal22_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal22_lhs goal22_rhs))
+
+;;;;;;;;;;;;;;;;;;;;;;;
+; $get_arith_poly_norm
+;;;;;;;;;;;;;;;;;;;;;;;
+
+; Case (($get_arith_poly_norm (- @poly.zero))          
+;      ($poly_neg ($get_arith_poly_norm @poly.zero)))
+(let goal23_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@- (Args (Mk (@poly_zero)) (Empty)))) (Empty)))))
+(let goal23_rhs 
+     (Mk (@$poly_neg (Args (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty))))
+                      (Empty)))))
+(Avaliable goal23_lhs)
+(Avaliable goal23_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal23_lhs goal23_rhs))
+
+(let goal24_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty)))))
+(let goal24_rhs 
+     (Mk (@poly 
+         (Args (Mk (@mon (Args (Mk (@* (Args (Mk (@poly_zero)) 
+                                       (Args (Mk (Num 1)) (Empty)))))
+                         (Args (Mk (Num 1)) (Empty)))))
+               (Args (Mk (@poly_zero)) (Empty))))))
+(Avaliable goal24_lhs)
+(Avaliable goal24_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal24_lhs goal24_rhs))
+
+(let goal25_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@- (Args (Mk (@poly_zero)) (Empty)))) (Empty)))))
+(let goal25_rhs 
+     (Mk (@$poly_neg 
+         (Args 
+         (Mk (@poly 
+             (Args (Mk (@mon (Args (Mk (@* (Args (Mk (@poly_zero)) 
+                                           (Args (Mk (Num 1)) (Empty)))))
+                             (Args (Mk (Num 1)) (Empty)))))
+                  (Args (Mk (@poly_zero)) (Empty)))))
+                      (Empty)))))
+(Avaliable goal25_lhs)
+(Avaliable goal25_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal25_lhs goal25_rhs))
+
+(let goal26_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@- (Args (Mk (@poly_zero)) (Empty)))) (Empty)))))
+(let goal26_rhs 
+     (Mk (@poly 
+    (Args (Mk (@mon (Args (Mk (@* (Args (Mk (@poly_zero)) 
+                                  (Args (Mk (Num 1)) (Empty))))) 
+                          (Args (Mk (@- (Args (Mk (Num 1)) (Empty)))) (Empty)))))
+          (Args (Mk (@$poly_neg (Args (Mk (@poly_zero)) (Empty)))) (Empty))))))
+(Avaliable goal26_lhs)
+(Avaliable goal26_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal26_lhs goal26_rhs))
+
+(let goal27_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@- (Args (Mk (@poly_zero)) (Empty)))) (Empty)))))
+(let goal27_rhs 
+     (Mk (@poly 
+    (Args (Mk (@mon (Args (Mk (@* (Args (Mk (@poly_zero)) 
+                                  (Args (Mk (Num 1)) (Empty))))) 
+                          (Args (Mk (@- (Args (Mk (Num 1)) (Empty)))) (Empty)))))
+          (Args (Mk (@poly_zero)) (Empty))))))
+(Avaliable goal27_lhs)
+(Avaliable goal27_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal27_lhs goal27_rhs))
+
+; Case (($get_arith_poly_norm (+ a1 a2))
+;      ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
+(let goal28_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (@poly_zero)) 
+                                              (Args (Mk (@poly_zero)) (Empty))))) 
+                                              (Empty)))))
+(let goal28_rhs 
+     (Mk (@$poly_add (Args (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) 
+                                                            (Empty))))
+                      (Args (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) 
+                                                             (Empty))))
+                            (Empty))))))
+(Avaliable goal28_lhs)
+(Avaliable goal28_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal28_lhs goal28_rhs))
+
+; Another Case (($get_arith_poly_norm (+ a1 a2))
+;               ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2))) 
+(let goal28b_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (Num 1)) 
+                                                    (Args (Mk (Num 2)) (Empty)))))
+                                      (Empty)))))
+(let goal28b_rhs 
+ (Mk (@$poly_add 
+
+     (Args (Mk 
+     (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 1)) (Empty)))))
+            (Args (Mk (@poly_zero)) (Empty)))))
+
+      (Args (Mk 
+      (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                 (Args (Mk (@poly_zero)) (Empty)))))
+                            
+      (Empty))))))
+(Avaliable goal28b_lhs)
+(Avaliable goal28b_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal28b_lhs goal28b_rhs))
+
+(let goal28c_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (Num 1)) 
+                                              (Args (Mk (Num 2)) (Empty)))))
+                                      (Empty)))))
+(let goal28c_rhs 
+     (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1))
+                           (Args (Mk (@+ (Args (Mk (Num 1)) 
+                                         (Args (Mk (Num 2)) (Empty)))))
+                                 (Empty)))))
+                 (Args (Mk (@$poly_add (Args (Mk (@poly_zero)) (Args (Mk (@poly_zero)) 
+                                                                     (Empty)))))
+                        (Empty))))))
+(Avaliable goal28c_lhs)
+(Avaliable goal28c_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal28c_lhs goal28c_rhs))
+
+(let goal28d_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (Num 1)) 
+                                              (Args (Mk (Num 2)) (Empty)))))
+                                      (Empty)))))
+(let goal28d_rhs 
+     (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1))
+                           (Args (Mk (Num 3))
+                                 (Empty)))))
+                 (Args (Mk (@poly_zero))
+                        (Empty))))))
+(Avaliable goal28d_lhs)
+(Avaliable goal28d_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal28d_lhs goal28d_rhs))
+
+
+; Case (($get_arith_poly_norm (* a1 a2)) ...
+(let goal29_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@* (Args (Mk (@poly_zero)) 
+                                              (Args (Mk (@poly_zero)) (Empty))))) 
+                                              (Empty)))))
+(let goal29_rhs 
+     (Mk (@$poly_mul (Args (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty))))
+                      (Args
+                        (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty))))
+                        (Empty))))))
+(Avaliable goal29_lhs)
+(Avaliable goal29_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal29_lhs goal29_rhs))
+
+; Case (($get_arith_poly_norm (/ a1 a2)) ...
+(let goal30_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@/ (Args (Mk (@poly_zero)) 
+                                              (Args (Mk (@poly_zero)) (Empty)))))
+                                 (Empty)))))
+(let goal30_rhs 
+     (Mk (@$get_arith_poly_norm_div 
+        (Args (Mk (@poly_zero))
+              (Args (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty))))
+                    (Args (Mk (@poly_zero)) (Empty)))))))
+(Avaliable goal30_lhs)
+(Avaliable goal30_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal30_lhs goal30_rhs))
+
+; Case (($get_arith_poly_norm (/_total a1 a2)) ...
+(let goal31_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@/_total (Args (Mk (@poly_zero)) 
+                                              (Args (Mk (@poly_zero)) (Empty)))))
+                                 (Empty)))))
+(let goal31_rhs 
+     (Mk (@$get_arith_poly_norm_div 
+        (Args (Mk (@poly_zero))
+              (Args (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty))))
+                    (Args (Mk (@poly_zero)) (Empty)))))))
+(Avaliable goal31_lhs)
+(Avaliable goal31_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal31_lhs goal31_rhs))
+
+; Case (($get_arith_poly_norm (to_real a)) ...
+(let goal32_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@to_real (Args (Mk (@poly_zero)) (Empty)))) (Empty)))))
+(let goal32_rhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty)))))
+(Avaliable goal32_lhs)
+(Avaliable goal32_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal32_lhs goal32_rhs))
+
+; Case (($get_arith_poly_norm (Num 0)) (@poly.zero)
+(let goal33_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (Num 0)) (Empty)))))
+(let goal33_rhs 
+     (Mk (@poly_zero)))
+(Avaliable goal33_lhs)
+(Avaliable goal33_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal33_lhs goal33_rhs))
+
+; Case (($get_arith_poly_norm (Num x)) (@poly (@mon 1 x)), when x != 0
+(let goal34_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (Num 2)) (Empty)))))
+(let goal34_rhs 
+     (Mk (@poly (Args (Mk (@mon (Args (Mk (Num 1)) (Args (Mk (Num 2)) (Empty)))))
+                 (Args (Mk (@poly_zero)) (Empty))))))
+(Avaliable goal34_lhs)
+(Avaliable goal34_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal34_lhs goal34_rhs))
+
+; Case (($get_arith_poly_norm x (@poly (@mon 1 x)), 
+; when x is not a number, nor an arith exp
+(let goal35_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@poly_zero)) (Empty)))))
+(let goal35_rhs 
+     (Mk (@poly (Args (Mk (@mon (Args (Mk (@* (Args (Mk (@poly_zero)) 
+                                                    (Args (Mk (Num 1)) 
+                                (Empty)))))
+                             (Args (Mk (Num 1)) (Empty)))))
+                  (Args (Mk (@poly_zero)) (Empty))))))
+(Avaliable goal35_lhs)
+(Avaliable goal35_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal35_lhs goal35_rhs))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+; arith_poly_norm
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Examples of arith expression normalized to the same polynomial
+(let goal36_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (Num 1)) 
+                                                    (Args (Mk (Num 2)) (Empty)))))
+                                      (Empty)))))
+(let goal36_rhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (Num 2)) 
+                                                    (Args (Mk (Num 1)) (Empty)))))
+                                      (Empty)))))
+(Avaliable goal36_lhs)
+(Avaliable goal36_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal36_lhs goal36_rhs))
+
+(let goal37_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@* (Args (Mk (Num 1)) 
+                                                    (Args (Mk (Num 2)) (Empty)))))
+                                      (Empty)))))
+(let goal37_rhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@* (Args (Mk (Num 2)) 
+                                                    (Args (Mk (Num 1)) (Empty)))))
+                                      (Empty)))))
+(Avaliable goal37_lhs)
+(Avaliable goal37_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal37_lhs goal37_rhs))
+
+(let goal38_lhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (Num 1)) 
+                                                    (Args (Mk (@* (Args (Mk (Num 2)) 
+                                                    (Args (Mk (Num 1)) (Empty))))) (Empty)))))
+                                      (Empty)))))
+(let goal38_rhs 
+     (Mk (@$get_arith_poly_norm (Args (Mk (@+ (Args (Mk (@* (Args (Mk (Num 2)) 
+                                                    (Args (Mk (Num 1)) (Empty))))) 
+                                                    (Args (Mk (Num 1)) (Empty)))))
+                                      (Empty)))))
+(Avaliable goal38_lhs)
+(Avaliable goal38_rhs)
+(run-schedule (repeat 2 (run)))
+(check (= goal38_lhs goal38_rhs))

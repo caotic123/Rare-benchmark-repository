@@ -155,7 +155,8 @@ def restore_smt2_from_git(smt2_path: str, repo_root: str, debug: bool = False) -
     return False
 
 def run_slice(from_hole: str, alethe_path: str, smt2_path: str, out_slice_path: str,
-              parse_hole_args: bool, no_print_with_sharing: bool, debug: bool) -> Tuple[bool, Optional[str]]:
+              parse_hole_args: bool, no_print_with_sharing: bool, allow_int_real: bool,
+              debug: bool) -> Tuple[bool, Optional[str]]:
     ensure_dir(os.path.dirname(out_slice_path))
     cmd = [
         "carcara", "slice",
@@ -167,6 +168,8 @@ def run_slice(from_hole: str, alethe_path: str, smt2_path: str, out_slice_path: 
         cmd.append("--parse-hole-args")
     if no_print_with_sharing:
         cmd.append("--no-print-with-sharing")
+    if allow_int_real:
+        cmd.append("--allow-int-real-subtyping")
     if debug:
         print(json.dumps({"debug": "slice_cmd", "cmd": cmd, "out": out_slice_path}))
     stderr_path = out_slice_path + ".stderr"
@@ -183,9 +186,9 @@ def run_slice(from_hole: str, alethe_path: str, smt2_path: str, out_slice_path: 
 
 def run_elaborate(slice_path: str, smt2_path: str, out_log_path: str, rare_file: str,
                   allow_int_real: bool, add_pipeline: bool, no_print_with_sharing: bool,
-                  parse_hole_args: bool, timeout_sec: int) -> Tuple[bool, int, int, bool, int, bool]:
+                  parse_hole_args: bool, timeout_sec: int) -> Tuple[bool, int, int, bool, int, bool, bool]:
     """
-    Returns: (ok, success_count, failed_count, panicked, elapsed_ns, timed_out)
+    Returns: (ok, success_count, failed_count, panicked, elapsed_ns, timed_out, oom_killed)
     """
     ensure_dir(os.path.dirname(out_log_path))
     cmd = [
@@ -207,20 +210,29 @@ def run_elaborate(slice_path: str, smt2_path: str, out_log_path: str, rare_file:
 
     start_ns = time.monotonic_ns()
     timed_out = False
+    oom_killed = False
+    proc = None
     with open(out_log_path, "w", encoding="utf-8") as f_log:
         try:
-            subprocess.run(
+            proc = subprocess.run(
                 cmd,
                 stdout=f_log,
                 stderr=subprocess.STDOUT,
                 text=True,
                 timeout=(None if timeout_sec is None or timeout_sec <= 0 else timeout_sec),
+                start_new_session=True,  # Isolate so OOM killer only kills carcara
             )
         except subprocess.TimeoutExpired:
             timed_out = True
-            # Leave a clear marker in the log
             try:
                 f_log.write(f"\n[timeout] Elaboration exceeded {timeout_sec}s and was terminated.\n")
+            except Exception:
+                pass
+        # Check for OOM kill (SIGKILL = -9)
+        if proc and proc.returncode == -9:
+            oom_killed = True
+            try:
+                f_log.write("\n[oom_killed] Process was killed by OOM killer (SIGKILL).\n")
             except Exception:
                 pass
     end_ns = time.monotonic_ns()
@@ -241,10 +253,10 @@ def run_elaborate(slice_path: str, smt2_path: str, out_log_path: str, rare_file:
     except Exception:
         ok = False
 
-    if timed_out or panicked or failed > 0:
+    if timed_out or oom_killed or panicked or failed > 0:
         ok = False
 
-    return ok, success, failed, panicked, elapsed_ns, timed_out
+    return ok, success, failed, panicked, elapsed_ns, timed_out, oom_killed
 
 def main():
     ap = argparse.ArgumentParser(
@@ -399,6 +411,7 @@ def main():
                         out_slice_path=slice_path,
                         parse_hole_args=args.parse_hole_args,
                         no_print_with_sharing=args.no_print_with_sharing,
+                        allow_int_real=args.allow_int_real_subtyping,
                         debug=args.debug
                     )
                     if not ok_slice:
@@ -451,7 +464,7 @@ def main():
                     }, ensure_ascii=False))
                     continue
 
-                ok, succ, fail, pan, elapsed_ns, timed_out = run_elaborate(
+                ok, succ, fail, pan, elapsed_ns, timed_out, oom_killed = run_elaborate(
                     slice_path=slice_path,
                     smt2_path=smt2_dest,
                     out_log_path=out_log_path,
@@ -476,6 +489,7 @@ def main():
                     "failed": fail,
                     "panicked": pan,
                     "timeout": timed_out,
+                    "oom_killed": oom_killed,
                     "elapsed": human_elapsed(elapsed_ns),
                 }
 
